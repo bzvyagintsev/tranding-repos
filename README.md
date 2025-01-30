@@ -51,6 +51,8 @@ With a larger timeline, the following enhancements could be made:
 - **Pagination**: Implement pagination to view more repositories from GitHub.
 - **URL Query Parameters**: Make language filtration based on query parameters in the URL, along with other filters.
 - **Mock Service Worker (MSW)**: Use MSW and a local database for more robust testing.
+- **Responsive Design**: Implement a responsive design to ensure the application provides an optimal viewing experience.
+- **Accessibility Enhancements**: Improve accessibility features to ensure that the application is usable by individuals with disabilities.
 
 ## Next Steps
 
