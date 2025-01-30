@@ -7,9 +7,9 @@ This project is a small client application designed for discovering trending rep
 ## Features
 
 - **Trending Repositories**: Displays a list of repositories created in the last 7 days with the highest number of stars on GitHub.
-- **Favorites**: Users can favorite repositories, which are stored locally (e.g., in local storage or cookies) and can be viewed through a filter or in a separate tab.
+- **Favorites**: Users can favorite repositories, which are stored locally (e.g., in local storage) and can be viewed through a filter.
 - **Repository Information**: Each repository card displays essential information, including the repository name, link to GitHub, description, and number of stars.
-- **Language Filter (Bonus)**: If time allows, users can filter repositories by programming languages.
+- **Language Filter (WIP)**: Users can filter loaded repositories by programming languages (to reset the filter reload the application).
 
 ## Technology Stack
 
