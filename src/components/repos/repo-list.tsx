@@ -1,100 +1,114 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
+import { useRepos } from '@/api/get-repos';
+import { RepoCard } from '@/components/repos/repo-card';
+import { RepoPagination } from '@/components/repos/repo-pagination';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useFavorites } from '@/stores/favorites';
 
-import { useRepos } from '../../api/get-repos';
-import { Button } from '../ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from '../ui/select';
-
-import { RepoCard } from './repo-card';
-
 export function RepoList() {
-  const { data, isLoading, error } = useRepos();
-  const { favorites, toggleFavorite } = useFavorites();
+  const [page, setPage] = useState(1);
+  const [language, setLanguage] = useState<string>('');
+  const [debouncedLanguage, setDebouncedLanguage] = useState(language);
+
   const [showFavorites, setShowFavorites] = useState(false);
-  const [languageFilter, setLanguageFilter] = useState<string>('');
+
+  const { data, isLoading, error } = useRepos(page, debouncedLanguage);
+  const { favorites, toggleFavorite, isFavorite } = useFavorites();
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedLanguage(language);
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [language]);
 
   if (isLoading) return <p>Loading...</p>;
   if (error) return <p>Error loading repositories.</p>;
 
   const repos = data?.data;
-
   if (!repos) return null;
 
-  const getFilteredRepos = () => {
-    let filtered = repos.items;
+  const displayedRepos = showFavorites ? favorites : repos.items;
+  const totalPages = Math.ceil(Math.min(repos.total_count, 1000) / 50);
 
-    if (languageFilter !== '') {
-      filtered = filtered.filter((repo) => repo.language === languageFilter);
-    }
+  function onPageChange(page: number) {
+    window.scrollTo(0, 0);
 
-    if (showFavorites) {
-      filtered = filtered.filter((repo) => favorites.includes(repo.id));
-    }
+    setPage(page);
+  }
 
-    return filtered;
-  };
+  if (showFavorites) {
+    return (
+      <div>
+        <h1 className="mb-12 text-7xl">Favorites</h1>
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <div>{displayedRepos.length} favorite results</div>
 
-  const filteredRepos = getFilteredRepos();
+          <Button onClick={() => setShowFavorites((prev) => !prev)}>
+            Show All
+          </Button>
+        </div>
 
-  const languages = [
-    ...new Set(
-      repos.items.map((item) => item.language).filter((lang) => lang !== null),
-    ),
-  ];
+        <div className="mb-4 grid gap-4">
+          {displayedRepos.length === 0 && <p>No favorite repositories yet</p>}
 
+          {displayedRepos.map((repo) => (
+            <RepoCard
+              key={repo.id}
+              repo={repo}
+              favorited={isFavorite(repo.id)}
+              onStarClick={() => toggleFavorite(repo)}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
   return (
     <div>
       <h1 className="mb-12 text-7xl">Trending repos</h1>
 
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
-          {filteredRepos.length} out of {repos.total_count} results
+          {`${(page - 1) * 50 + 1}-${Math.min(page * 50, 1000)} of ${repos.total_count}`}
         </div>
 
         <div className="ml-auto">
-          <Select onValueChange={setLanguageFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by language" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Languages</SelectLabel>
-                {languages.map((lang) => (
-                  <SelectItem key={lang} value={lang}>
-                    {lang}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+          <Input
+            type="text"
+            placeholder="Filter by language..."
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            className="w-[180px]"
+          />
         </div>
 
         <Button onClick={() => setShowFavorites((prev) => !prev)}>
-          {showFavorites ? 'Show All Repos' : 'Show Favorites'}
+          Show Starred
         </Button>
       </div>
 
-      <div className="grid gap-4">
-        {filteredRepos.length === 0 && <p>No repos</p>}
+      <div className="mb-4 grid gap-4">
+        {displayedRepos.length === 0 && <p>No repositories found</p>}
 
-        {filteredRepos.map((repo) => (
+        {displayedRepos.map((repo) => (
           <RepoCard
             key={repo.id}
             repo={repo}
-            favorited={favorites.includes(repo.id)}
-            onStarClick={() => toggleFavorite(repo.id)}
+            favorited={isFavorite(repo.id)}
+            onStarClick={() => toggleFavorite(repo)}
           />
         ))}
       </div>
+
+      <RepoPagination
+        page={page}
+        totalPages={totalPages}
+        onChange={onPageChange}
+      />
     </div>
   );
 }

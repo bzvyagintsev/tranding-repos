@@ -1,7 +1,6 @@
+import { RepoCard } from '@/components/repos/repo-card';
 import { generateRepo } from '@/testing/data-generators';
 import { renderApp, screen, userEvent, waitFor } from '@/testing/test-utils';
-
-import { RepoCard } from '../repo-card';
 
 describe('RepoCard', () => {
   it('should render RepoCard', async () => {

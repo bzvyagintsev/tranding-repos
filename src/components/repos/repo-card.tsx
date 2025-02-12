@@ -1,8 +1,7 @@
 import { Star, Globe, StarOff } from 'lucide-react';
 
+import { Toggle } from '@/components/ui/toggle';
 import { Repo } from '@/types/repos';
-
-import { Toggle } from '../ui/toggle';
 
 interface Props {
   repo: Repo;

@@ -3,17 +3,37 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { ReposResponse } from '@/types/repos';
 
-// https://api.github.com/search/repositories?q=created:%3E2017-01-10&sort=stars&order=desc
+interface GetReposParams {
+  page: number;
+  language?: string;
+}
 
-export const getRepos = (): Promise<{ data: ReposResponse }> => {
+export const getRepos = ({
+  page,
+  language,
+}: GetReposParams): Promise<{ data: ReposResponse }> => {
   return api.get(
-    '/search/repositories?q=created:>2017-01-10&sort=stars&order=desc',
+    `/search/repositories?q=${getGithubQuery(language)}&sort=stars&order=desc&page=${page}&per_page=50`,
   );
 };
 
-export const useRepos = () => {
+export const useRepos = (page: number, language?: string) => {
   return useQuery({
-    queryKey: ['repos'],
-    queryFn: () => getRepos(),
+    queryKey: ['repos', { page, language }],
+    queryFn: () => getRepos({ page, language }),
+    keepPreviousData: true,
   });
+};
+
+export const getGithubQuery = (language?: string) => {
+  const yearAgo = new Date();
+  yearAgo.setDate(yearAgo.getDate() - 365);
+  const dateQuery = yearAgo.toISOString().split('T')[0];
+
+  let query = `created:>${dateQuery}`;
+  if (language) {
+    query += `+language:${language}`;
+  }
+
+  return query;
 };
